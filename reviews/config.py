@@ -1,0 +1,1 @@
+ALDI_REVIEWS_JSON = 'aldi_reviews.json'

@@ -1,0 +1,4 @@
+scrapy
+pytest
+pandas
+jupyter
