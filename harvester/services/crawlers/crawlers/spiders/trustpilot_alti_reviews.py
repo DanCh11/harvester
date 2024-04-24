@@ -1,4 +1,7 @@
 import json
+import pickle
+
+import pandas as pd
 
 from scrapy import Request, Spider
 from typing import Any, Iterable
@@ -10,16 +13,17 @@ class AldiReviewsSpider(Spider):
     name = "aldi-reviews"
     url = "https://www.trustpilot.com/review/www.aldi.de?languages=all"
     
-    def __init__(self, *args: Any, filename: str = "aldiRoaster\resources\crawlers\aldi_reviews.json", **kwargs: Any):
+    def __init__(self, *args: Any, filename: str = "aldi_reviews.csv", **kwargs: Any):
         super().__init__(*args, **kwargs)
         
         self.filename = filename
-        self.data = list()
+        self.data = []
         
     def start_requests(self) -> Iterable[Request]:
         yield Request(url=self.url, callback=self.parse)
 
     def parse(self, response):
+        self.data.clear()
         next_page = response.css('nav.pagination_pagination___F1qS a.pagination-link_next__SDNU4::attr(href)').get()
         review_containers = response.css('section.styles_reviewsContainer__3_GQw')
 
@@ -33,13 +37,13 @@ class AldiReviewsSpider(Spider):
             item['posting_time'] = posting_time
             item['rating'] = rating
             item['comment'] = comment
-            
-            self.data.append(dict(item))
-            
-        with open(self.filename, 'a') as file:
-            for item in self.data:
-                line = json.dumps(item) + "\n"
-                file.write(line)
+
+            self.data.append(item)   
         
         if next_page is not None:
             yield response.follow(next_page, self.parse)
+            
+    def closed(self, reason):
+        df = pd.DataFrame(self.data)
+        df.to_csv(self.filename, index=False)
+            

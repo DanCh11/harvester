@@ -10,4 +10,3 @@ class AldiReviewsItem(scrapy.Item):
     posting_time = scrapy.Field()
     rating = scrapy.Field()
     comment = scrapy.Field()
-    
