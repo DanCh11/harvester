@@ -2,4 +2,5 @@ scrapy
 pytest
 pandas
 jupyter
-translate
+deep_translator
+spacy

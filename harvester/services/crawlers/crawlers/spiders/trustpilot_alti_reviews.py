@@ -4,6 +4,7 @@ import pandas as pd
 from scrapy import Request, Spider
 from typing import Any, Iterable
 
+from config import ALDI_REVIEW_FILENAME, RESOURCES_PATH
 from ..items import AldiReviewsItem
 
 
@@ -11,11 +12,11 @@ class AldiReviewsSpider(Spider):
     name = "aldi-reviews"
     url = "https://www.trustpilot.com/review/www.aldi.de?languages=all"
     
-    def __init__(self, *args: Any, filename: str = "aldi_reviews.csv", **kwargs: Any):
+    def __init__(self, *args: Any, filename: str = ALDI_REVIEW_FILENAME, **kwargs: Any):
         super().__init__(*args, **kwargs)
         
         self.filename = filename
-        self.data = []
+        self.data = list()
         
     def start_requests(self) -> Iterable[Request]:
         yield Request(url=self.url, callback=self.parse)
@@ -43,5 +44,5 @@ class AldiReviewsSpider(Spider):
             
     def closed(self, reason):
         df = pd.DataFrame(self.data)
-        df.to_csv(self.filename, index=False)
+        df.to_csv(RESOURCES_PATH + self.filename, index=False)
             
