@@ -4,3 +4,5 @@ pandas
 jupyter
 deep_translator
 spacy
+contractions
+pyspellchecker

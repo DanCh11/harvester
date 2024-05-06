@@ -4,7 +4,7 @@ import pandas as pd
 from scrapy import Request, Spider
 from typing import Any, Iterable
 
-from config import ALDI_REVIEW_FILENAME, RESOURCES_PATH
+from harvester.services.crawlers.crawlers.config import ALDI_REVIEW_FILENAME, RESOURCES_PATH
 from ..items import AldiReviewsItem
 
 
@@ -22,7 +22,6 @@ class AldiReviewsSpider(Spider):
         yield Request(url=self.url, callback=self.parse)
 
     def parse(self, response):
-        self.data.clear()
         next_page = response.css('nav.pagination_pagination___F1qS a.pagination-link_next__SDNU4::attr(href)').get()
         review_containers = response.css('section.styles_reviewsContainer__3_GQw')
 
