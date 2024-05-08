@@ -1,11 +1,14 @@
 import re
 
-import spacy
+import nltk
 import pandas as pd
 
-from contractions import fix
-from spellchecker import SpellChecker
-from spacy.lang.de.stop_words import STOP_WORDS
+from nltk import word_tokenize, WordNetLemmatizer
+from nltk.corpus import stopwords
+
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
 
 REQUIRED_COLUMNS = ['posting_time', 'rating', 'comment']
 
@@ -15,16 +18,14 @@ class Preprocessor:
         This class represents a preprocessing pipeline for crawled reviews.
         It requires a strict column identification with concrete type.
         The data is passed through several techniques to have as output
-        clean textual data. Crawled reviews are normally in german, so
-        the preprocessor works only with german language.
+        clean textual data.
 
         Returns:
             pd.Dataframe: clean textual data
     """
-    def __init__(self, dataset: pd.DataFrame) -> None:
-        self.spell_checker = SpellChecker(language='de')
-        self.nlp = spacy.load('de_core_news_sm')
+    def __init__(self, dataset: pd.DataFrame, language: str) -> None:
         self.dataset = dataset
+        self.language = language
 
     def validate_data(self):
         """
@@ -33,41 +34,36 @@ class Preprocessor:
         for column in self.dataset.columns:
             assert column in REQUIRED_COLUMNS
 
-    def lowercase(self, text: str) -> str:
-        doc = self.nlp(text)
+    def preprocess(self, text: str) -> list:
+        """Executes the following preprocessing steps:
+            1. lowering the letters
+            2. removes whitespaces
+            3. removes digits
+            4. removes special characters
+            5. tokenizes preprocessed words
+
+        Args:
+            text (str): given text
+
+        Returns:
+            list: tokenized preprocessed words
+        """
+        text = text.lower()
+        text = text.strip()
+        text = re.sub(r'\d+', '', text)
+        text = re.sub(r'[^\w\s]', '', text)
+
+        return word_tokenize(text)
         
-        return " ".join(token.text.lower() for token in doc)
+    def remove_stopwords(self, tokens: list) -> list:
+        stop_words = set(stopwords.words(self.language))
+        
+        return [word for word in tokens if word not in stop_words]
     
-    def remove_whitespaces(self, text: str):
-        return text.strip()
+    def lemmatize(self, tokens: list) -> list:
+        lemmatizer = WordNetLemmatizer()
 
-    def tokenize_and_lemmatize(self, text: str):
-        doc = self.nlp(text)
-        return [token.lemma_ for token in doc if token.lemma_ != '-PRON-']
-    
-    def remove_depricated_elemets(self, words: list) -> list:
-        """
-            In depricated elements enter punctiation, stopwords and special characters.
-            
-            Args:
-                words (list): the list of tokenized words
-
-            Returns:
-                list: the list of words without depricated elements.
-        """
-        return [token for token in words if token.isalnum() and token.lower() not in STOP_WORDS]
-
-    def spell_check(self, words: list) -> list:
-        """
-            Replaces incorrect spelled words with dictionary correct form. 
-
-            Args:
-                words (list): the list of tokenized words
-
-            Returns:
-                list: a list of correct spelled words
-        """
-        return [self.spell_checker.correction(word) for word in words]
+        return [lemmatizer.lemmatize(token) for token in tokens]
 
     def convert_rating_into_numbers(self, rating: str) -> float | None:
         """
@@ -89,24 +85,19 @@ class Preprocessor:
             else:
                 return None
             
-    def expand_contractions(self, text: str) -> str:
-        """
-            Resolves contractions (and slang), such as: I'm -> I am, etc.
+    def clean_text(self, text: str) -> str:
+        tokens = self.preprocess(text)
+        filtered_tokens = self.remove_stopwords(tokens)
+        lemmatized_tokens = self.lemmatize(filtered_tokens)
 
-            Args:
-                text (str): given text
-
-            Returns:
-                str: contracted text
-        """
-        return fix(text)
+        return ' '.join(lemmatized_tokens)
 
     def execute(self):
-        self.dataset['comment'] = self.dataset['comment'].apply(self.lowercase)
-        self.dataset['comment'] = self.dataset['comment'].apply(self.expand_contractions)
-        self.dataset['comment'] = self.dataset['comment'].apply(self.remove_whitespaces)
-        self.dataset['comment'] = self.dataset['comment'].apply(self.tokenize_and_lemmatize)
-        self.dataset['comment'] = self.dataset['comment'].apply(self.remove_depricated_elemets)
-        self.dataset['comment'] = self.dataset['comment'].apply(self.spell_check)
+        self.dataset = self.dataset[pd.notnull(self.dataset['comment'])]
+        self.dataset['comment'] = self.dataset['comment'].apply(self.clean_text)
+        self.dataset['rating'] = self.dataset['rating'].apply(self.convert_rating_into_numbers)
         
-        self.dataset['rating'] = self.dataset['rating'].apply(self.convert_rating_into_numbers )
+    
+    @staticmethod
+    def show_available_languages():
+        print(stopwords.fileids())

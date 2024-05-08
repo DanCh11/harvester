@@ -2,7 +2,4 @@ scrapy
 pytest
 pandas
 jupyter
-deep_translator
-spacy
-contractions
-pyspellchecker
+nltk

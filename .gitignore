@@ -1,6 +1,6 @@
 .vscode/
 
-harvester/config.py
+harvester/services/crawlers/config.py
 
 resources/
 
