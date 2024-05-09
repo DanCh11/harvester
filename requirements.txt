@@ -2,4 +2,4 @@ scrapy
 pytest
 pandas
 jupyter
-translate
+nltk
