@@ -6,14 +6,12 @@ import pandas as pd
 from nltk import word_tokenize, WordNetLemmatizer
 from nltk.corpus import stopwords
 
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('wordnet')
+nltk.download(['stopwords', 'punkt', 'wordnet'])
 
 REQUIRED_COLUMNS = ['posting_time', 'rating', 'comment']
 
 
-class Preprocessor:
+class ReviewsPreprocessor:
     """
         This class represents a preprocessing pipeline for crawled reviews.
         It requires a strict column identification with concrete type.
