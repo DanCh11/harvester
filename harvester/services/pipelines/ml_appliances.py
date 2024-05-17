@@ -1,7 +1,11 @@
+from typing import Callable
 
 import pandas as pd
 
 from germansentiment import SentimentModel
+
+
+MLAppliancesStrategy = Callable[[pd.DataFrame], pd.DataFrame]
 
 
 def create_sentiment_analysis(dataset: pd.DataFrame, column_name: str, batch_size: int) -> pd.DataFrame:
@@ -14,7 +18,7 @@ def create_sentiment_analysis(dataset: pd.DataFrame, column_name: str, batch_siz
         batch_size (int): batch size
 
     Returns:
-        pd.DataFrame: preprocesed dataset with sentiment analysis data
+        pd.DataFrame: pre-processed dataset with sentiment analysis data
     """
     num_rows = len(dataset)
     num_batches = (num_rows + batch_size - 1) // batch_size

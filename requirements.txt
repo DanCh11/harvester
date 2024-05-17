@@ -4,3 +4,4 @@ pandas
 jupyter
 nltk
 germansentiment
+deep_translator
