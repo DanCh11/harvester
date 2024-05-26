@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 
-from harvester.services.pipelines.preprocessor.reviews_preprocessor import (ReviewsPreprocessor,
-                                                                            PreprocessingHandler,
-                                                                            TranslationHandler,
-                                                                            ProcessingHandler,
-                                                                            RatingConverterHandler)
+from harvester.services.preprocessor import (ReviewsPreprocessor,
+                                             PreprocessingHandler,
+                                             TranslationHandler,
+                                             ProcessingHandler,
+                                             RatingConverterHandler)
 
 
 def test_preprocessor(mock_reviews):
