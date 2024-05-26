@@ -3,5 +3,8 @@ pytest
 pandas
 jupyter
 nltk
-germansentiment
+contractions
 deep_translator
+gensim
+scipy==1.10.1
+textblob

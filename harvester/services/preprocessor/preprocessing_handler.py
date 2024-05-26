@@ -1,12 +1,13 @@
 
 import re
 
+import contractions
 import pandas as pd
 
 from concurrent.futures import ThreadPoolExecutor
 
 from deep_translator import GoogleTranslator
-from nltk import word_tokenize, WordNetLemmatizer, download
+from nltk import word_tokenize, download
 from nltk.corpus import stopwords
 
 from .abstract_handler import AbstractHandler
@@ -16,17 +17,17 @@ download(['stopwords', 'punkt', 'wordnet'], quiet=True)
 
 class PreprocessingHandler(AbstractHandler):
     def handle(self, dataset: pd.DataFrame) -> pd.DataFrame:
-        dataset['comment'] = dataset['comment'].apply(self._preprocess)
+        dataset.loc[:, 'comment'] = dataset['comment'].apply(self._preprocess)
 
         return super().handle(dataset)
 
     def _preprocess(self, text: str) -> str:
         """Executes the following preprocessing steps:
-            1. lowering the letters
-            2. removes whitespaces
-            3. removes digits
-            4. removes special characters
-            5. tokenizes preprocessed words
+            1. fix contractions such as `you're` to you `are`
+            2. lowering the letters
+            3. removes whitespaces
+            4. removes digits
+            5. removes special characters
 
         Args:
             text (str): given text
@@ -37,6 +38,7 @@ class PreprocessingHandler(AbstractHandler):
         if not isinstance(text, str):
             return ""
 
+        text = contractions.fix(text)
         text = text.lower()
         text = text.strip()
         text = re.sub(r'[^\w\s]', '', text)
@@ -47,7 +49,7 @@ class PreprocessingHandler(AbstractHandler):
 
 class TranslationHandler(AbstractHandler):
     def handle(self, dataset: pd.DataFrame) -> pd.DataFrame:
-        dataset['comment'] = self._translate_batch(dataset['comment'].to_list())
+        dataset.loc[:, 'comment'] = self._translate_batch(dataset['comment'].to_list())
         return super().handle(dataset)
 
     def _translate_batch(self, texts: list[str], max_workers: int = 5) -> list[str]:
@@ -80,16 +82,15 @@ class TranslationHandler(AbstractHandler):
 
 class ProcessingHandler(AbstractHandler):
     def handle(self, dataset: pd.DataFrame) -> pd.DataFrame:
-        dataset['comment'] = dataset['comment'].apply(self._processing_text)
+        dataset.loc[:, 'comment'] = dataset['comment'].apply(self._processing_text)
 
         return super().handle(dataset)
 
     def _processing_text(self, text: str) -> str:
         tokens = self._tokenize(text)
-        lemmatized_tokens = self._lemmatize(tokens)
-        filtered_tokens = self._remove_stopwords(lemmatized_tokens)
+        filtered_tokens = self._remove_stopwords(tokens)
 
-        return ' '.join(self._lemmatize(filtered_tokens))
+        return ' '.join(filtered_tokens)
 
     def _tokenize(self, text: str) -> list[str]:
         return word_tokenize(text)
@@ -99,13 +100,10 @@ class ProcessingHandler(AbstractHandler):
 
         return [word for word in tokens if word not in stop_words]
 
-    def _lemmatize(self, tokens: list[str]) -> list[str]:
-        return [WordNetLemmatizer().lemmatize(token) for token in tokens]
-
 
 class RatingConverterHandler(AbstractHandler):
     def handle(self, dataset: pd.DataFrame) -> pd.DataFrame:
-        dataset['rating'] = dataset['rating'].apply(self._convert_rating)
+        dataset.loc[:, 'rating'] = dataset['rating'].apply(self._convert_rating)
 
         return super().handle(dataset)
 
