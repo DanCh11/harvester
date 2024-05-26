@@ -1,12 +1,18 @@
+
+import nltk
 import pandas as pd
 
 from collections import Counter
 
 from gensim.corpora.dictionary import Dictionary
 from gensim.models.ldamodel import LdaModel
+from nltk import pos_tag, sent_tokenize, word_tokenize
 from nltk.sentiment import SentimentIntensityAnalyzer
+from textblob import TextBlob
 
 from .abstract_strategy import MLStrategy
+
+nltk.download('averaged_perceptron_tagger', quiet=True)
 
 
 class CreateSentimentAnalysisStrategy(MLStrategy):
@@ -103,3 +109,26 @@ class ExtractDominantTopicsStrategy(MLStrategy):
         ]
 
         return pd.DataFrame(result, columns=['Topic', 'Count', 'Words'])
+
+
+class PerformAspectAnalysisStrategy(MLStrategy):
+    def execute(self,
+                dataset: pd.DataFrame,
+                text_column: str,
+                aspects_sentiments_column: str = 'aspects_sentiments') -> pd.DataFrame:
+
+        dataset[aspects_sentiments_column] = dataset[text_column].apply(self._extract_aspects_and_sentiments)
+        return dataset
+
+    def _extract_aspects_and_sentiments(self, text: str) -> list:
+        word = word_tokenize(text)
+        pos_tags = pos_tag(word)
+        aspects = [word for word, pos in pos_tags if pos.startswith('NN')]
+
+        return [
+            (aspect,
+             'POSITIVE' if (sentiment := TextBlob(next(
+                 sent for sent in sent_tokenize(text) if aspect in sent)).sentiment.polarity) > 0
+             else 'NEGATIVE' if sentiment < 0 else 'NEUTRAL')
+            for aspect in aspects
+        ]
