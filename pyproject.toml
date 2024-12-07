@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "harvester"
+version = "0.1.0"
+description = "aldi customer review representation"
+authors = ["Dan Chiriac <dan.chiriac@rwth-aachen.de>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10.4"
+scrapy = "^2.12.0"
+pytest = "^8.3.4"
+pandas = "^2.2.3"
+nltk = "^3.9.1"
+contractions = "^0.1.73"
+gensim = "^4.3.3"
+textblob = "^0.18.0.post0"
+jupyter = "^1.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
