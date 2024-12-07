@@ -4,15 +4,12 @@ import re
 import contractions
 import pandas as pd
 
-from concurrent.futures import ThreadPoolExecutor
-
-from deep_translator import GoogleTranslator
 from nltk import word_tokenize, download
 from nltk.corpus import stopwords
 
 from .abstract_handler import AbstractHandler
 
-download(['stopwords', 'punkt', 'wordnet'], quiet=True)
+download(['stopwords', 'punkt_tab', 'wordnet'], quiet=True)
 
 
 class PreprocessingHandler(AbstractHandler):
@@ -47,39 +44,6 @@ class PreprocessingHandler(AbstractHandler):
         return text
 
 
-class TranslationHandler(AbstractHandler):
-    def handle(self, dataset: pd.DataFrame) -> pd.DataFrame:
-        dataset.loc[:, 'comment'] = self._translate_batch(dataset['comment'].to_list())
-        return super().handle(dataset)
-
-    def _translate_batch(self, texts: list[str], max_workers: int = 5) -> list[str]:
-        """
-            Translates given batch of texts using above translating function. Because
-            the dataset can be huge, it uses threads to split the execution process
-            to a number of workers.
-
-            @param texts: given texts
-            @param max_workers: number of workers
-
-            @return: translated batch of text
-        """
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            results = list(executor.map(self._translate, texts))
-        return results
-
-    def _translate(self, text: str) -> str:
-        """
-            Helper function that translate a single string into given language
-            @param text: given text
-
-            @return: translated text
-        """
-        if text is None:
-            return ""
-
-        return GoogleTranslator(source='auto', target='en').translate(text)
-
-
 class ProcessingHandler(AbstractHandler):
     def handle(self, dataset: pd.DataFrame) -> pd.DataFrame:
         dataset.loc[:, 'comment'] = dataset['comment'].apply(self._processing_text)
@@ -96,7 +60,7 @@ class ProcessingHandler(AbstractHandler):
         return word_tokenize(text)
 
     def _remove_stopwords(self, tokens: list[str]) -> list[str]:
-        stop_words = set(stopwords.words("english"))
+        stop_words = set(stopwords.words("german"))
 
         return [word for word in tokens if word not in stop_words]
 

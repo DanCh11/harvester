@@ -13,6 +13,8 @@ from textblob import TextBlob
 from .abstract_strategy import MLStrategy
 
 nltk.download('averaged_perceptron_tagger', quiet=True)
+nltk.download('vader_lexicon', quiet=True)
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 
 
 class CreateSentimentAnalysisStrategy(MLStrategy):

@@ -1,8 +1,7 @@
 
 import pandas as pd
 
-from .preprocessing_handler import (PreprocessingHandler, TranslationHandler,
-                                    ProcessingHandler, RatingConverterHandler)
+from .preprocessing_handler import PreprocessingHandler, ProcessingHandler, RatingConverterHandler
 
 
 class ReviewsPreprocessor:
@@ -18,9 +17,8 @@ class ReviewsPreprocessor:
 
     def __init__(self, dataset: pd.DataFrame) -> None:
         self.dataset = dataset
-        self.pipeline = TranslationHandler()
+        self.pipeline = PreprocessingHandler()
         (self.pipeline
-             .set_next(PreprocessingHandler())
              .set_next(ProcessingHandler())
              .set_next(RatingConverterHandler()))
 
